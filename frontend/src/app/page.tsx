@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Wallet,
   Droplets,
@@ -100,24 +100,8 @@ const TokenFaucet = () => {
     }
   }, []);
 
-  // Load contract data
-  useEffect(() => {
-    if (provider && isConnected && networkId === expectedNetworkId && window.ethers) {
-      loadContractData();
-      checkUserCooldown();
-    }
-  }, [provider, isConnected, walletAddress, networkId]);
-
-  // Timer for cooldown
-  useEffect(() => {
-    if (timeUntilNext > 0) {
-      const timer = setTimeout(() => setTimeUntilNext(timeUntilNext - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [timeUntilNext]);
-
-  // Load contract data
-  const loadContractData = async () => {
+  // Define loadContractData first
+  const loadContractData = useCallback(async () => {
     if (!provider || !window.ethers) return;
 
     try {
@@ -146,10 +130,10 @@ const TokenFaucet = () => {
       console.error('Error loading contract data:', error);
       setError('Failed to load contract data. Please check contract addresses.');
     }
-  };
+  }, [provider, faucetContractAddress, faucetAbi, tokenContractAddress, tokenAbi]);
 
-  // Check user cooldown
-  const checkUserCooldown = async () => {
+  // Define checkUserCooldown second
+  const checkUserCooldown = useCallback(async () => {
     if (!provider || !walletAddress || !window.ethers) return;
 
     try {
@@ -162,7 +146,23 @@ const TokenFaucet = () => {
     } catch (error) {
       console.error('Error checking cooldown:', error);
     }
-  };
+  }, [provider, walletAddress, faucetContractAddress, faucetAbi]);
+
+  // Load contract data effect
+  useEffect(() => {
+    if (provider && isConnected && networkId === expectedNetworkId && window.ethers) {
+      loadContractData();
+      checkUserCooldown();
+    }
+  }, [provider, isConnected, walletAddress, networkId, expectedNetworkId, checkUserCooldown, loadContractData]);
+
+  // Timer for cooldown
+  useEffect(() => {
+    if (timeUntilNext > 0) {
+      const timer = setTimeout(() => setTimeUntilNext(timeUntilNext - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [timeUntilNext]);
 
   // Connect wallet function
   const connectWallet = async () => {
@@ -540,7 +540,7 @@ const TokenFaucet = () => {
               <p>• Maximum {faucetStats.claimableAmount} tokens per request</p>
               <p>• One request per address every 24 hours</p>
               <p>• Powered by smart contract on {networkName}</p>
-              {faucetContractAddress !== "0x..." && (
+              {faucetContractAddress as string !== "0x..." && (
                 <p className="font-mono text-xs mt-2">
                   Contract: {faucetContractAddress.slice(0, 10)}...{faucetContractAddress.slice(-8)}
                 </p>
