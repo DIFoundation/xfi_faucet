@@ -608,7 +608,7 @@ export const FAUCET_ABI = [
     }
   ];
 
-export const TOKEN_CONTRACT_ADDRESS = "0x...";  // Your XFI token contract address
+export const TOKEN_CONTRACT_ADDRESS = "0xF321b818669d56C8f11b3617429cD987c745B0D2";  // Your XFI token contract address
 export const TOKEN_ABI = [
     "function balanceOf(address account) external view returns (uint256)",
     "function symbol() external view returns (string)",

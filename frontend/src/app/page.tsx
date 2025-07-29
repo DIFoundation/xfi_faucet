@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Wallet,
@@ -12,7 +12,15 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { FAUCET_CONTRACT_ADDRESS, TOKEN_CONTRACT_ADDRESS, EXPECTED_NETWORK_ID, NETWORK_NAME, BLOCK_EXPLORER, FAUCET_ABI, TOKEN_ABI} from "@/lib/addressAndAbi";
+import {
+  FAUCET_CONTRACT_ADDRESS,
+  TOKEN_CONTRACT_ADDRESS,
+  EXPECTED_NETWORK_ID,
+  NETWORK_NAME,
+  BLOCK_EXPLORER,
+  FAUCET_ABI,
+  TOKEN_ABI,
+} from "@/lib/addressAndAbi";
 
 declare global {
   interface Window {
@@ -30,6 +38,7 @@ const TokenFaucet = () => {
   const [recipientAddress, setRecipientAddress] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [txHash, setTxHash] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [timeUntilNext, setTimeUntilNext] = useState(0);
@@ -48,7 +57,10 @@ const TokenFaucet = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [signer, setSigner] = useState<any>(null);
   const [networkId, setNetworkId] = useState<number | null>(null);
-  const [userCanRequest, setUserCanRequest] = useState<{canRequest: boolean, reason: string}>({canRequest: true, reason: ""});
+  const [userCanRequest, setUserCanRequest] = useState<{
+    canRequest: boolean;
+    reason: string;
+  }>({ canRequest: true, reason: "" });
 
   const faucetContractAddress = FAUCET_CONTRACT_ADDRESS;
   const faucetAbi = FAUCET_ABI;
@@ -60,15 +72,16 @@ const TokenFaucet = () => {
 
   // Initialize Web3 connection
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.ethereum) {
+    if (typeof window !== "undefined" && window.ethereum) {
       const initProvider = async () => {
         try {
           // Load ethers from CDN if not available
           if (!window.ethers) {
-            const script = document.createElement('script');
-            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js';
+            const script = document.createElement("script");
+            script.src =
+              "https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js";
             document.head.appendChild(script);
-            
+
             script.onload = () => {
               initializeProvider();
             };
@@ -76,15 +89,17 @@ const TokenFaucet = () => {
             initializeProvider();
           }
         } catch (error) {
-          console.error('Failed to load ethers:', error);
+          console.error("Failed to load ethers:", error);
         }
       };
-      
+
       const initializeProvider = async () => {
         try {
-          const web3Provider = new window.ethers.providers.Web3Provider(window.ethereum);
+          const web3Provider = new window.ethers.providers.Web3Provider(
+            window.ethereum
+          );
           setProvider(web3Provider);
-          
+
           // Check if already connected
           const accounts = await web3Provider.listAccounts();
           if (accounts.length > 0) {
@@ -92,12 +107,12 @@ const TokenFaucet = () => {
             setRecipientAddress(accounts[0]);
             setIsConnected(true);
             setSigner(web3Provider.getSigner());
-            
+
             const network = await web3Provider.getNetwork();
             setNetworkId(network.chainId);
           }
         } catch (error) {
-          console.error('Failed to initialize provider:', error);
+          console.error("Failed to initialize provider:", error);
         }
       };
 
@@ -110,8 +125,16 @@ const TokenFaucet = () => {
     if (!provider || !window.ethers) return;
 
     try {
-      const faucetContract = new window.ethers.Contract(faucetContractAddress, faucetAbi, provider);
-      const tokenContract = new window.ethers.Contract(tokenContractAddress, tokenAbi, provider);
+      const faucetContract = new window.ethers.Contract(
+        faucetContractAddress,
+        faucetAbi,
+        provider
+      );
+      const tokenContract = new window.ethers.Contract(
+        tokenContractAddress,
+        tokenAbi,
+        provider
+      );
 
       // Get faucet stats using the correct ABI functions
       const [
@@ -122,7 +145,7 @@ const TokenFaucet = () => {
         maxTokensPerDay,
         tokenSymbol,
         faucetBalance,
-        decimals
+        decimals,
       ] = await Promise.all([
         faucetContract.totalRequests(),
         faucetContract.tokensPerRequest(),
@@ -131,13 +154,25 @@ const TokenFaucet = () => {
         faucetContract.maxTokensPerDay(),
         tokenContract.symbol(),
         tokenContract.balanceOf(faucetContractAddress),
-        tokenContract.decimals()
+        tokenContract.decimals(),
       ]);
 
-      const formattedClaimable = window.ethers.utils.formatUnits(tokensPerRequest, decimals);
-      const formattedBalance = window.ethers.utils.formatUnits(faucetBalance, decimals);
-      const formattedDistributed = window.ethers.utils.formatUnits(totalTokensDistributed, decimals);
-      const formattedMaxPerDay = window.ethers.utils.formatUnits(maxTokensPerDay, decimals);
+      const formattedClaimable = window.ethers.utils.formatUnits(
+        tokensPerRequest,
+        decimals
+      );
+      const formattedBalance = window.ethers.utils.formatUnits(
+        faucetBalance,
+        decimals
+      );
+      const formattedDistributed = window.ethers.utils.formatUnits(
+        totalTokensDistributed,
+        decimals
+      );
+      const formattedMaxPerDay = window.ethers.utils.formatUnits(
+        maxTokensPerDay,
+        decimals
+      );
 
       setFaucetStats({
         totalRequests: totalRequests.toNumber(),
@@ -147,41 +182,69 @@ const TokenFaucet = () => {
         maxTokensPerDay: parseFloat(formattedMaxPerDay),
         tokenSymbol,
         faucetBalance: parseFloat(formattedBalance),
-        remainingTokens: parseFloat(formattedBalance)
+        remainingTokens: parseFloat(formattedBalance),
       });
     } catch (error) {
-      console.error('Error loading contract data:', error);
-      setError('Failed to load contract data. Please check contract addresses.');
+      console.error("Error loading contract data:", error);
+      setError(
+        "Failed to load contract data. Please check contract addresses."
+      );
     }
-  }, [provider, faucetContractAddress, faucetAbi, tokenContractAddress, tokenAbi]);
+  }, [
+    provider,
+    faucetContractAddress,
+    faucetAbi,
+    tokenContractAddress,
+    tokenAbi,
+  ]);
 
   // Check user request eligibility
   const checkUserCooldown = useCallback(async () => {
     if (!provider || !walletAddress || !window.ethers) return;
 
     try {
-      const faucetContract = new window.ethers.Contract(faucetContractAddress, faucetAbi, provider);
-      
+      const faucetContract = new window.ethers.Contract(
+        faucetContractAddress,
+        faucetAbi,
+        provider
+      );
+
       // Check if user can request tokens
-      const [canRequest, reason] = await faucetContract.canUserRequest(walletAddress);
+      const [canRequest, reason] = await faucetContract.canUserRequest(
+        walletAddress
+      );
       setUserCanRequest({ canRequest, reason });
 
       // Get remaining cooldown time
-      const remainingCooldown = await faucetContract.getRemainingCooldown(walletAddress);
+      const remainingCooldown = await faucetContract.getRemainingCooldown(
+        walletAddress
+      );
       setTimeUntilNext(remainingCooldown.toNumber());
-
     } catch (error) {
-      console.error('Error checking cooldown:', error);
+      console.error("Error checking cooldown:", error);
     }
   }, [provider, walletAddress, faucetContractAddress, faucetAbi]);
 
   // Load contract data effect
   useEffect(() => {
-    if (provider && isConnected && networkId === expectedNetworkId && window.ethers) {
+    if (
+      provider &&
+      isConnected &&
+      networkId === expectedNetworkId &&
+      window.ethers
+    ) {
       loadContractData();
       checkUserCooldown();
     }
-  }, [provider, isConnected, walletAddress, networkId, expectedNetworkId, checkUserCooldown, loadContractData]);
+  }, [
+    provider,
+    isConnected,
+    walletAddress,
+    networkId,
+    expectedNetworkId,
+    checkUserCooldown,
+    loadContractData,
+  ]);
 
   // Timer for cooldown
   useEffect(() => {
@@ -208,11 +271,15 @@ const TokenFaucet = () => {
         return;
       }
 
-      const web3Provider = new window.ethers.providers.Web3Provider(window.ethereum);
+      const web3Provider = new window.ethers.providers.Web3Provider(
+        window.ethereum
+      );
       const network = await web3Provider.getNetwork();
-      
+
       if (network.chainId !== expectedNetworkId) {
-        setError(`Please switch to ${networkName} network (Chain ID: ${expectedNetworkId})`);
+        setError(
+          `Please switch to ${networkName} network (Chain ID: ${expectedNetworkId})`
+        );
         return;
       }
 
@@ -256,15 +323,19 @@ const TokenFaucet = () => {
     setTxHash("");
 
     try {
-      const faucetContract = new window.ethers.Contract(faucetContractAddress, faucetAbi, signer);
-      
+      const faucetContract = new window.ethers.Contract(
+        faucetContractAddress,
+        faucetAbi,
+        signer
+      );
+
       // Estimate gas first
       const gasEstimate = await faucetContract.estimateGas.requestTokens();
       const gasLimit = gasEstimate.mul(120).div(100); // Add 20% buffer
 
       // Call the requestTokens function (no parameters needed based on ABI)
       const tx = await faucetContract.requestTokens({
-        gasLimit: gasLimit
+        gasLimit: gasLimit,
       });
 
       setTxHash(tx.hash);
@@ -272,10 +343,12 @@ const TokenFaucet = () => {
 
       // Wait for transaction confirmation
       const receipt = await tx.wait();
-      
+
       if (receipt.status === 1) {
-        setSuccess(`Successfully received ${faucetStats.claimableAmount} ${faucetStats.tokenSymbol} tokens!`);
-        
+        setSuccess(
+          `Successfully received ${faucetStats.claimableAmount} ${faucetStats.tokenSymbol} tokens!`
+        );
+
         // Refresh contract data and cooldown
         await loadContractData();
         await checkUserCooldown();
@@ -283,21 +356,25 @@ const TokenFaucet = () => {
         setError("Transaction failed");
       }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.error('Transaction error:', error);
-      
+      console.error("Transaction error:", error);
+
       if (error.code === 4001) {
         setError("Transaction cancelled by user");
-      } else if (error.message?.includes('insufficient funds')) {
+      } else if (error.message?.includes("insufficient funds")) {
         setError("Insufficient ETH for gas fees");
-      } else if (error.message?.includes('CooldownActive')) {
-        setError("You are still in cooldown period. Please wait before requesting again.");
-      } else if (error.message?.includes('DailyLimitExceeded')) {
+      } else if (error.message?.includes("CooldownActive")) {
+        setError(
+          "You are still in cooldown period. Please wait before requesting again."
+        );
+      } else if (error.message?.includes("DailyLimitExceeded")) {
         setError("Daily limit exceeded. Please try again tomorrow.");
-      } else if (error.message?.includes('InsufficientFaucetBalance')) {
-        setError("Faucet has insufficient balance. Please contact administrator.");
-      } else if (error.message?.includes('revert')) {
+      } else if (error.message?.includes("InsufficientFaucetBalance")) {
+        setError(
+          "Faucet has insufficient balance. Please contact administrator."
+        );
+      } else if (error.message?.includes("revert")) {
         setError("Transaction reverted. Please check the error message.");
       } else {
         setError("Transaction failed. Please try again.");
@@ -313,16 +390,26 @@ const TokenFaucet = () => {
     if (!provider || !walletAddress || !window.ethers) return null;
 
     try {
-      const faucetContract = new window.ethers.Contract(faucetContractAddress, faucetAbi, provider);
-      const [requested, remaining] = await faucetContract.getDailyUsage(walletAddress);
-      
+      const faucetContract = new window.ethers.Contract(
+        faucetContractAddress,
+        faucetAbi,
+        provider
+      );
+      const [requested, remaining] = await faucetContract.getDailyUsage(
+        walletAddress
+      );
+
       const decimals = 18; // Assuming 18 decimals, you might want to get this from token contract
       return {
-        requested: parseFloat(window.ethers.utils.formatUnits(requested, decimals)),
-        remaining: parseFloat(window.ethers.utils.formatUnits(remaining, decimals))
+        requested: parseFloat(
+          window.ethers.utils.formatUnits(requested, decimals)
+        ),
+        remaining: parseFloat(
+          window.ethers.utils.formatUnits(remaining, decimals)
+        ),
       };
     } catch (error) {
-      console.error('Error getting daily usage:', error);
+      console.error("Error getting daily usage:", error);
       return null;
     }
   }, [provider, walletAddress, faucetContractAddress, faucetAbi]);
@@ -332,7 +419,7 @@ const TokenFaucet = () => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m ${secs}s`;
     } else if (minutes > 0) {
@@ -350,7 +437,7 @@ const TokenFaucet = () => {
   // Format number for display
   const formatNumber = (num: number) => {
     return parseFloat(num.toString()).toLocaleString(undefined, {
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     });
   };
 
@@ -378,7 +465,8 @@ const TokenFaucet = () => {
           </h1>
           <p className="text-lg text-gray-300 max-w-2xl mx-auto">
             Get free {faucetStats.tokenSymbol} tokens for testing and
-            development. Request up to {faucetStats.claimableAmount} tokens with a {formatTime(faucetStats.cooldownTime)} cooldown.
+            development. Request up to {faucetStats.claimableAmount} tokens with
+            a {formatTime(faucetStats.cooldownTime)} cooldown.
           </p>
         </div>
 
@@ -388,7 +476,8 @@ const TokenFaucet = () => {
             <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-xl p-4 flex items-center">
               <AlertCircle className="w-5 h-5 text-yellow-400 mr-3 flex-shrink-0" />
               <span className="text-yellow-400">
-                Please switch to {networkName} network (Chain ID: {expectedNetworkId}) to use this faucet
+                Please switch to {networkName} network (Chain ID:{" "}
+                {expectedNetworkId}) to use this faucet
               </span>
             </div>
           </div>
@@ -450,7 +539,7 @@ const TokenFaucet = () => {
                   </button>
                 )}
               </div>
-              
+
               {!isConnected ? (
                 <button
                   onClick={connectWallet}
@@ -490,7 +579,9 @@ const TokenFaucet = () => {
                   {/* User Status */}
                   {!userCanRequest.canRequest && (
                     <div className="bg-yellow-500/20 border border-yellow-400/30 rounded-xl p-3">
-                      <p className="text-yellow-400 text-sm">{userCanRequest.reason}</p>
+                      <p className="text-yellow-400 text-sm">
+                        {userCanRequest.reason}
+                      </p>
                     </div>
                   )}
 
@@ -512,7 +603,8 @@ const TokenFaucet = () => {
                     ) : (
                       <>
                         <Droplets className="w-5 h-5 mr-2" />
-                        Request {faucetStats.claimableAmount} {faucetStats.tokenSymbol} Tokens
+                        Request {faucetStats.claimableAmount}{" "}
+                        {faucetStats.tokenSymbol} Tokens
                       </>
                     )}
                   </button>
@@ -521,12 +613,6 @@ const TokenFaucet = () => {
             )}
 
             {/* Status Messages */}
-            {error && (
-              <div className="mb-6 bg-red-500/20 border border-red-400/30 rounded-xl p-4 flex items-center">
-                <AlertCircle className="w-5 h-5 text-red-400 mr-3 flex-shrink-0" />
-                <span className="text-red-400">{error}</span>
-              </div>
-            )}
 
             {success && (
               <div className="mb-6 bg-green-500/20 border border-green-400/30 rounded-xl p-4">
@@ -575,9 +661,20 @@ const TokenFaucet = () => {
               <p>• Maximum {faucetStats.maxTokensPerDay} tokens per day</p>
               <p>• Cooldown period: {formatTime(faucetStats.cooldownTime)}</p>
               <p>• Powered by smart contract on {networkName}</p>
-              {faucetContractAddress as string !== "0x..." && (
+              {(faucetContractAddress as string) !== "0x..." && (
                 <p className="font-mono text-xs mt-2">
-                  Contract: {faucetContractAddress.slice(0, 10)}...{faucetContractAddress.slice(-8)}
+                  Contract: {faucetContractAddress}
+                </p>
+              )}
+            </div>
+            <div className="text-center text-sm">
+              <p>
+                Import the custom token address into your Metamask to veiw the custom
+                token balance
+              </p>
+              {(TOKEN_CONTRACT_ADDRESS as string) !== "0x..." && (
+                <p className="font-semibold text-white">
+                  Token contract address: {TOKEN_CONTRACT_ADDRESS}
                 </p>
               )}
             </div>
@@ -586,7 +683,7 @@ const TokenFaucet = () => {
 
         {/* Footer */}
         <div className="text-center mt-12 text-sm text-gray-400">
-          <p>Decentralized Faucet • No Backend Required</p>
+          <p>Decentralized Faucet • Powered by XFI</p>
         </div>
       </div>
     </div>
